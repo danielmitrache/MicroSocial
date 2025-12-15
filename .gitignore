@@ -1,0 +1,40 @@
+# .gitignore for ASP.NET Core Razor Pages (.NET 9)
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Visual Studio
+.vs/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Logs
+*.log
+
+# Publish outputs
+publish/
+
+# Secrets and sensitive files
+appsettings.Development.json
+secrets.json
+
+# Rider
+.idea/
+*.sln.iml
+
+# npm packages
+node_modules/
+
+# Others
+wwwroot/lib/
