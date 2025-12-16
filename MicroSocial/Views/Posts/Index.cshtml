@@ -31,14 +31,34 @@
                             <span class="text-muted">Unknown User</span>
                         }
                     </h5>
-                    <small class="text-muted">@item.CreatedAt.ToLocalTime().ToString("g")</small>
+                    <div class="d-flex align-items-center">
+                        <small class="text-muted me-2">@item.CreatedAt.ToLocalTime().ToString("g")</small>
+                        
+                        @if (currentUser != null && (item.UserId == currentUser.Id || User.IsInRole("Administrator")))
+                        {
+                             <div class="dropdown">
+                                <button class="btn btn-sm btn-link text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    ⋮
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@item.PostId">Edit</a></li>
+                                    <li>
+                                        <form asp-action="Delete" asp-route-id="@item.PostId" method="post" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                            <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                    </div>
                 </div>
                 
                 <p class="card-text mt-2">@item.Content</p>
                 
                 <div class="d-flex align-items-center mt-3">
-                    <form asp-action="ToggleLike" method="post" class="me-3">
+                    <form asp-controller="Likes" asp-action="ToggleLike" method="post" class="me-3">
                         <input type="hidden" name="postId" value="@item.PostId" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
                         <button type="submit" class="btn btn-sm @(currentUser != null && item.Likes.Any(l => l.UserId == currentUser.Id) ? "btn-danger" : "btn-outline-danger")">
                             ❤ @item.Likes.Count
                         </button>

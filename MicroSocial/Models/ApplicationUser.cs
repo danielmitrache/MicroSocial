@@ -4,27 +4,30 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
 
-public class ApplicationUser : IdentityUser
+namespace MicroSocial.Models
 {
-    [Key]
-    public string UserId { get; set; }
+    public class ApplicationUser : IdentityUser
+    {
+        [Key]
+        public string UserId { get; set; }
 
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? ProfilePicture { get; set; }
-    public string? Description { get; set; }
-    public bool? IsPrivate { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? ProfilePicture { get; set; }
+        public string? Description { get; set; }
+        public bool? IsPrivate { get; set; }
 
-    // Relationships
-    public ICollection<Post> Posts { get; set; }
-    public ICollection<Comment> Comments { get; set; }
-    public ICollection<GroupMessage> GroupMessages { get; set; }
+        // Relationships
+        public ICollection<Post> Posts { get; set; }
+        public ICollection<Comment> Comments { get; set; }
+        public ICollection<GroupMessage> GroupMessages { get; set; }
 
-    [InverseProperty("Moderator")]
-    public ICollection<Group> ModeratedGroups { get; set; }
-    public ICollection<UserGroup> UserGroups { get; set; }
-    public ICollection<Liked> Likes { get; set; }
+        [InverseProperty("Moderator")]
+        public ICollection<Group> ModeratedGroups { get; set; }
+        public ICollection<UserGroup> UserGroups { get; set; }
+        public ICollection<Liked> Likes { get; set; }
 
-    public ICollection<Follow> Followers { get; set; }
-    public ICollection<Follow> Following { get; set; }
+        public ICollection<Follow> Followers { get; set; }
+        public ICollection<Follow> Following { get; set; }
+    }
 }

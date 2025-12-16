@@ -64,7 +64,9 @@ namespace MicroSocial.Data
                 var normalUser = await userManager.FindByEmailAsync("user@test.com");
 
                 // Seed Posts
-                var posts = new Post[]
+                if (!context.Posts.Any())
+                {
+                    var posts = new Post[]
                 {
                     new Post
                     {
@@ -114,8 +116,9 @@ namespace MicroSocial.Data
                     }
                 };
 
-                context.Comments.AddRange(comments);
-                await context.SaveChangesAsync();
+                    context.Comments.AddRange(comments);
+                    await context.SaveChangesAsync();
+                }
             }
         }
     }

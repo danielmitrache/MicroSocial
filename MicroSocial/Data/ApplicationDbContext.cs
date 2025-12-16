@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using MicroSocial.Models;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
@@ -8,7 +9,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
     }
 
-    public DbSet<ApplicationUser> Users { get; set; }
+    // public DbSet<ApplicationUser> Users { get; set; } // Removed to avoid warning CS0114
     public DbSet<Post> Posts { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Group> Groups { get; set; }

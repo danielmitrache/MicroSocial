@@ -96,58 +96,108 @@ namespace MicroSocial.Controllers
             return View(post);
         }
 
-        // POST: Posts/AddComment
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddComment(int postId, string content)
+        // GET: Posts/Edit/5
+        public async Task<IActionResult> Edit(int? id)
         {
-            if (string.IsNullOrWhiteSpace(content))
+            if (id == null)
             {
-                return RedirectToAction(nameof(Details), new { id = postId });
+                return NotFound();
+            }
+
+            var post = await _context.Posts.FindAsync(id);
+            if (post == null)
+            {
+                return NotFound();
             }
 
             var user = await _userManager.GetUserAsync(User);
-            var comment = new Comment
+            if (post.UserId != user.Id && !User.IsInRole("Administrator"))
             {
-                PostId = postId,
-                UserId = user.Id,
-                Content = content,
-                CreatedAt = DateTime.UtcNow
-            };
+                return Forbid();
+            }
 
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Details), new { id = postId });
+            return View(post);
         }
 
-        // POST: Posts/ToggleLike
+        // POST: Posts/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleLike(int postId)
+        public async Task<IActionResult> Edit(int id, [Bind("PostId,Content,MediaType")] Post post)
         {
+            if (id != post.PostId)
+            {
+                return NotFound();
+            }
+
+            var existingPost = await _context.Posts.FindAsync(id);
+            if (existingPost == null)
+            {
+                return NotFound();
+            }
+
             var user = await _userManager.GetUserAsync(User);
-            var existingLike = await _context.Likes
-                .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == user.Id);
-
-            if (existingLike != null)
+            if (existingPost.UserId != user.Id && !User.IsInRole("Administrator"))
             {
-                _context.Likes.Remove(existingLike);
+                return Forbid();
             }
-            else
+
+            // Remove properties we set manually or don't need from validation
+            ModelState.Remove("MediaPath");
+            ModelState.Remove("User");
+            ModelState.Remove("UserId");
+            ModelState.Remove("Likes");
+            ModelState.Remove("Comments");
+
+            if (ModelState.IsValid)
             {
-                var like = new Liked
+                try
                 {
-                    PostId = postId,
-                    UserId = user.Id
-                };
-                _context.Likes.Add(like);
+                    existingPost.Content = post.Content;
+                    
+                    _context.Update(existingPost);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!PostExists(post.PostId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(post);
+        }
+
+        // POST: Posts/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var post = await _context.Posts.FindAsync(id);
+            if (post == null)
+            {
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
+            var user = await _userManager.GetUserAsync(User);
+            if (post.UserId != user.Id && !User.IsInRole("Administrator"))
+            {
+                return Forbid();
+            }
 
-            // Redirect back to where the user came from would be ideal, but for now Index or Details
-            return RedirectToAction(nameof(Index)); 
+            _context.Posts.Remove(post);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool PostExists(int id)
+        {
+            return _context.Posts.Any(e => e.PostId == id);
         }
     }
 }
