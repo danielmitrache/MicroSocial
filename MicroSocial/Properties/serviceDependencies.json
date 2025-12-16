@@ -8,6 +8,11 @@
       "type": "mssql",
       "connectionId": "ConnectionStrings:MicroSocialConnection",
       "dynamicId": null
+    },
+    "mssql3": {
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:ConnectionString",
+      "dynamicId": null
     }
   }
 }

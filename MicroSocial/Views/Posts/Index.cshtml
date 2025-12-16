@@ -1,0 +1,54 @@
+@model IEnumerable<Post>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Posts";
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Recent Posts</h1>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-action="Create" class="btn btn-primary">Create New Post</a>
+        }
+    </div>
+
+    @foreach (var item in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-title">
+                        @if (item.User != null)
+                        {
+                            @item.User.UserName
+                        }
+                        else
+                        {
+                            <span class="text-muted">Unknown User</span>
+                        }
+                    </h5>
+                    <small class="text-muted">@item.CreatedAt.ToLocalTime().ToString("g")</small>
+                </div>
+                
+                <p class="card-text mt-2">@item.Content</p>
+                
+                <div class="d-flex align-items-center mt-3">
+                    <form asp-action="ToggleLike" method="post" class="me-3">
+                        <input type="hidden" name="postId" value="@item.PostId" />
+                        <button type="submit" class="btn btn-sm @(currentUser != null && item.Likes.Any(l => l.UserId == currentUser.Id) ? "btn-danger" : "btn-outline-danger")">
+                            ❤ @item.Likes.Count
+                        </button>
+                    </form>
+                    
+                    <a asp-action="Details" asp-route-id="@item.PostId" class="btn btn-sm btn-outline-secondary">
+                        Comments (@item.Comments.Count)
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
