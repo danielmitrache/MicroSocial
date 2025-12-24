@@ -7,9 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MicroSocial.Controllers
 {
-    // Ensure only admins can access this controller in a real scenario
-    // [Authorize(Roles = "Administrator")] 
-    // For now, we allow authenticated users for testing purposes as requested by user
+
     [Authorize] 
     public class AdminController : Controller
     {

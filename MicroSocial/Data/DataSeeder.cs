@@ -55,9 +55,6 @@ namespace MicroSocial.Data
                     }
                 }
 
-                // Need to save changes to get UserIds generated/persisted if needed for relationships, 
-                // but UserManager creates them immediately. 
-                // We need to fetch them back to get their Ids for Posts.
                 
                 var adminUser = await userManager.FindByEmailAsync("admin@test.com");
                 var editorUser = await userManager.FindByEmailAsync("editor@test.com");

@@ -25,7 +25,6 @@ namespace MicroSocial.Controllers
         {
             if (string.IsNullOrWhiteSpace(content))
             {
-                // In a real app we might return an error or stay on the same page with a validation message
                 return RedirectToAction("Details", "Posts", new { id = postId });
             }
 

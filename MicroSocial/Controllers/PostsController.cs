@@ -59,7 +59,6 @@ namespace MicroSocial.Controllers
                 return NotFound();
             }
 
-            // Check visibility logic if needed (e.g. private profiles) - simple version for now
             return View(post);
         }
 
@@ -86,8 +85,8 @@ namespace MicroSocial.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 post.UserId = user.Id;
                 post.CreatedAt = DateTime.UtcNow;
-                post.MediaType = MediaType.None; // Default for now
-                post.MediaPath = ""; // Default
+                post.MediaType = MediaType.None;
+                post.MediaPath = "";
 
                 _context.Add(post);
                 await _context.SaveChangesAsync();
@@ -141,7 +140,6 @@ namespace MicroSocial.Controllers
                 return Forbid();
             }
 
-            // Remove properties we set manually or don't need from validation
             ModelState.Remove("MediaPath");
             ModelState.Remove("User");
             ModelState.Remove("UserId");

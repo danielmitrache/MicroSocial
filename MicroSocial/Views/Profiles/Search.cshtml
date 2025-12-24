@@ -1,0 +1,45 @@
+@model IEnumerable<MicroSocial.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Search Users";
+}
+
+<div class="container mt-4">
+    <h2>Search Users</h2>
+    <form asp-action="Search" method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="searchString" class="form-control" placeholder="Search by name or username..." />
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="list-group">
+            @foreach (var user in Model)
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                         @if (!string.IsNullOrEmpty(user.ProfilePicture))
+                        {
+                            <img src="@user.ProfilePicture" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <img src="https://via.placeholder.com/50" class="rounded-circle me-3" style="width: 50px; height: 50px;" />
+                        }
+                        <div>
+                            <h5 class="mb-0">@user.FirstName @user.LastName</h5>
+                            <small class="text-muted">@user.UserName</small>
+                        </div>
+                    </div>
+                    <a asp-action="Show" asp-route-id="@user.Id" class="btn btn-outline-primary btn-sm">View Profile</a>
+                </div>
+            }
+        </div>
+    }
+    else if (Context.Request.Query.ContainsKey("searchString"))
+    {
+        <div class="alert alert-warning">No users found.</div>
+    }
+</div>

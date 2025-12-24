@@ -1,0 +1,107 @@
+@model MicroSocial.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    @if (!string.IsNullOrEmpty(Model.ProfilePicture))
+                    {
+                        <img src="@Model.ProfilePicture" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;" alt="Profile Picture" />
+                    }
+                    else
+                    {
+                        <img src="https://via.placeholder.com/150" class="rounded-circle img-fluid mb-3" alt="Default Profile" />
+                    }
+
+                    <h3>@Model.FirstName @Model.LastName</h3>
+                    <p class="text-muted">@Model.UserName</p>
+                    
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p>@Model.Description</p>
+                    }
+
+                    @if (ViewBag.IsCurrentUser)
+                    {
+                        <a asp-action="Edit" class="btn btn-primary btn-block mb-2">Edit Profile</a>
+                    }
+                    else if (User.Identity.IsAuthenticated)
+                    {
+                        if (ViewBag.IsFollowing)
+                        {
+                            <form asp-controller="Profiles" asp-action="Unfollow" asp-route-id="@Model.Id" method="post">
+                                <button type="submit" class="btn btn-danger btn-block mb-2">Unfollow</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-controller="Profiles" asp-action="Follow" asp-route-id="@Model.Id" method="post">
+                                <button type="submit" class="btn btn-primary btn-block mb-2">Follow</button>
+                            </form>
+                        }
+                    }
+                </div>
+            </div>
+            
+             <div class="card mt-3">
+                <div class="card-body">
+                   <h5 class="card-title">Stats</h5>
+                   <p><strong>Posts:</strong> @Model.Posts?.Count</p>
+                   <p>
+                       <a asp-action="Followers" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
+                           <strong>Followers:</strong> @(Model.Followers != null ? Model.Followers.Count : 0)
+                       </a>
+                   </p>
+                   <p>
+                       <a asp-action="Following" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
+                           <strong>Following:</strong> @(Model.Following != null ? Model.Following.Count : 0)
+                       </a>
+                   </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <h4>Posts</h4>
+
+            @if (ViewBag.IsPrivateProfile == true)
+            {
+                <div class="alert alert-secondary text-center p-5">
+                    <i class="bi bi-lock-fill display-4"></i>
+                    <h4>This account is private</h4>
+                    <p>Follow this account to see their posts.</p>
+                </div>
+            }
+            else if (Model.Posts != null && Model.Posts.Any())
+            {
+                <div class="list-group">
+                    @foreach (var post in Model.Posts)
+                    {
+                        <div class="list-group-item mb-3 p-3 shadow-sm border rounded">
+                             <small class="text-muted">@post.CreatedAt.ToString("g")</small>
+                             <p class="mt-2">@post.Content</p>
+                             <div class="d-flex justify-content-between">
+                                <span><i class="bi bi-heart"></i> @post.Likes?.Count Likes</span>
+                                <span><i class="bi bi-chat"></i> @post.Comments?.Count Comments</span>
+                             </div>
+                             <a asp-controller="Posts" asp-action="Details" asp-route-id="@post.PostId" class="btn btn-sm btn-outline-secondary mt-2">View Post</a>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                   No posts to show.
+                </div>
+            }
+        </div>
+    </div>
+</div>

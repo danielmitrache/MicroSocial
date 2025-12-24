@@ -9,7 +9,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
     }
 
-    // public DbSet<ApplicationUser> Users { get; set; } // Removed to avoid warning CS0114
     public DbSet<Post> Posts { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Group> Groups { get; set; }
