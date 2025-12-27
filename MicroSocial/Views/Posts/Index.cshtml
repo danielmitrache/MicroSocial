@@ -54,6 +54,18 @@
                 </div>
                 
                 <p class="card-text mt-2">@item.Content</p>
+
+                @if (item.MediaType == MediaType.Image && !string.IsNullOrEmpty(item.MediaPath))
+                {
+                    <img src="@item.MediaPath" class="img-fluid mt-2 rounded" style="max-height: 500px; width: 100%; object-fit: cover;" alt="Post image" />
+                }
+                else if (item.MediaType == MediaType.Video && !string.IsNullOrEmpty(item.MediaPath))
+                {
+                    <video controls class="img-fluid mt-2 rounded" style="max-height: 500px; width: 100%;">
+                        <source src="@item.MediaPath" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                }
                 
                 <div class="d-flex align-items-center mt-3">
                     <form asp-controller="Likes" asp-action="ToggleLike" method="post" class="me-3">

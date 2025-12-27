@@ -26,6 +26,18 @@
                 }
             </div>
             <p class="card-text">@Model.Content</p>
+
+            @if (Model.MediaType == MediaType.Image && !string.IsNullOrEmpty(Model.MediaPath))
+            {
+                <img src="@Model.MediaPath" class="img-fluid mt-2 rounded" style="max-height: 600px; width: 100%; object-fit: contain;" alt="Post image" />
+            }
+            else if (Model.MediaType == MediaType.Video && !string.IsNullOrEmpty(Model.MediaPath))
+            {
+                <video controls class="img-fluid mt-2 rounded" style="max-height: 600px; width: 100%;">
+                    <source src="@Model.MediaPath" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            }
             
              <div class="d-flex align-items-center mt-3">
                  <!-- Like Button -->

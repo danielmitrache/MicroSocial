@@ -12,11 +12,13 @@ namespace MicroSocial.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public PostsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public PostsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _userManager = userManager;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Posts
@@ -71,7 +73,7 @@ namespace MicroSocial.Controllers
         // POST: Posts/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Content,MediaType")] Post post)
+        public async Task<IActionResult> Create([Bind("Content,MediaType")] Post post, IFormFile? mediaFile)
         {
             // Remove properties we set manually or don't need from validation
             ModelState.Remove("MediaPath");
@@ -85,8 +87,44 @@ namespace MicroSocial.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 post.UserId = user.Id;
                 post.CreatedAt = DateTime.UtcNow;
-                post.MediaType = MediaType.None;
-                post.MediaPath = "";
+                
+                if (mediaFile != null && mediaFile.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(mediaFile.FileName);
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await mediaFile.CopyToAsync(fileStream);
+                    }
+
+                    post.MediaPath = "/uploads/" + uniqueFileName;
+
+                    var ext = Path.GetExtension(mediaFile.FileName).ToLower();
+                    if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }.Contains(ext))
+                    {
+                        post.MediaType = MediaType.Image;
+                    }
+                    else if (new[] { ".mp4", ".webm", ".ogg" }.Contains(ext))
+                    {
+                        post.MediaType = MediaType.Video;
+                    }
+                    else
+                    {
+                        post.MediaType = MediaType.None;
+                    }
+                }
+                else
+                {
+                    post.MediaType = MediaType.None;
+                    post.MediaPath = "";
+                }
 
                 _context.Add(post);
                 await _context.SaveChangesAsync();
