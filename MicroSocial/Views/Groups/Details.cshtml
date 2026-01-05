@@ -10,13 +10,13 @@
 }
 
 <div class="container mt-4">
-    <div class="card mb-4 shadow-sm">
+                    <div class="card">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
                     <h1 class="display-6">@Model.Name</h1>
                     <p class="lead text-muted">@Model.Description</p>
-                    <p class="mb-0 small text-muted">Moderator: @(Model.Moderator?.UserName ?? "Unknown")</p>
+                    <p class="mb-0 small text-muted">Moderator: @(Model.Moderator != null ? $"{Model.Moderator.FirstName} {Model.Moderator.LastName}" : "Unknown")</p>
                 </div>
                 <div>
                     @if (isModerator)
@@ -84,7 +84,7 @@
                                             <div class="card-body p-2">
                                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                                     <small class="@(isMine ? "text-white-50" : "text-muted") fw-bold me-2">
-                                                        @(message.User?.UserName ?? "Unknown")
+                                                        @(message.User != null ? $"{message.User.FirstName} {message.User.LastName}" : "Unknown")
                                                     </small>
                                                     
                                                     @if (isMine)
@@ -152,7 +152,7 @@
                                     @foreach (var req in requests)
                                     {
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>@(req.User?.UserName ?? "Unknown")</span>
+                                            <span>@(req.User != null ? $"{req.User.FirstName} {req.User.LastName}" : "Unknown")</span>
                                             <div class="btn-group btn-group-sm">
                                                 <form asp-action="AcceptRequest" method="post">
                                                     <input type="hidden" name="groupId" value="@Model.GroupId" />
@@ -184,7 +184,7 @@
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <div class="d-flex align-items-center gap-2">
                                             <!-- Optionally add Avatar here -->
-                                             <span>@(member.User?.UserName ?? "Unknown")</span>
+                                             <span>@(member.User != null ? $"{member.User.FirstName} {member.User.LastName}" : "Unknown")</span>
                                              @if (member.UserId == Model.ModeratorId)
                                              {
                                                  <span class="badge bg-info text-dark">Mod</span>

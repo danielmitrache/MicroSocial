@@ -22,12 +22,12 @@
             @foreach (var item in Model)
             {
                 <div class="col">
-                    <div class="card h-100 shadow-sm">
+                    <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">@item.Name</h5>
                             <p class="card-text text-truncate">@item.Description</p>
                             <p class="card-text">
-                                <small class="text-muted">Moderator: @(item.Moderator?.UserName ?? "Unknown")</small>
+                                <small class="text-muted">Moderator: @(item.Moderator != null ? $"{item.Moderator.FirstName} {item.Moderator.LastName}" : "Unknown")</small>
                             </p>
                             <a asp-action="Details" asp-route-id="@item.GroupId" class="btn btn-outline-primary stretched-link">View Group</a>
                         </div>
