@@ -12,14 +12,13 @@ namespace MicroSocial.Models
 
         public string UserId { get; set; }
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; }
+        public ApplicationUser? User { get; set; }
 
         public string Content { get; set; }
-        public string MediaPath { get; set; }
+        public string? MediaPath { get; set; }
         public MediaType MediaType { get; set; }
         public DateTime CreatedAt { get; set; }
-
-        public ICollection<Comment> Comments { get; set; }
-        public ICollection<Liked> Likes { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
+        public ICollection<Liked>? Likes { get; set; }
     }
 }

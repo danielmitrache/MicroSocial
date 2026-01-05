@@ -43,8 +43,6 @@ namespace MicroSocial.Controllers
                 return RedirectToAction("Details", "Groups", new { id = message.GroupId });
             }
             
-            // If invalid, redirect back to group details with error? 
-            // Ideally we'd show the error. For now, redirect.
             return RedirectToAction("Details", "Groups", new { id = message.GroupId });
         }
 
@@ -83,7 +81,7 @@ namespace MicroSocial.Controllers
             {
                 // Preserve original fields
                 message.UserId = userId;
-                message.SentAt = existingMessage.SentAt; // Keep original time? Or update? usually keep.
+                message.SentAt = existingMessage.SentAt; 
 
                 try
                 {
@@ -116,9 +114,6 @@ namespace MicroSocial.Controllers
             if (message == null) return NotFound();
 
             var userId = _userManager.GetUserId(User);
-            // Allow author OR moderator to delete? Requirement says: "Utilizatorii pot... edita sau sterge propriile mesaje"
-            // "Moderatorul poate sterge grupurile". Doesn't explicitly say moderator can delete messages, but usually yes.
-            // Let's stick to "Current user can delete their own messages" for now as per explicit requirement.
             
             if (message.UserId != userId) return Forbid();
 

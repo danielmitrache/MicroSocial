@@ -48,6 +48,7 @@ namespace MicroSocial.Controllers
                 .Include(u => u.Posts)
                     .ThenInclude(p => p.Comments)
                 .Include(u => u.Followers)
+                    .ThenInclude(f => f.FollowingUser)
                 .Include(u => u.Following)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
@@ -61,6 +62,7 @@ namespace MicroSocial.Controllers
 
             ViewBag.IsCurrentUser = false;
             ViewBag.IsFollowing = false;
+            ViewBag.RequestSent = false;
             
             if (User.Identity.IsAuthenticated)
             {
@@ -70,10 +72,26 @@ namespace MicroSocial.Controllers
                      if (currentUser.Id == user.Id)
                      {
                         ViewBag.IsCurrentUser = true;
+                        // Load pending requests for the owner
+                        ViewBag.PendingRequests = user.Followers
+                            .Where(f => f.Status == false)
+                            .Select(f => f.FollowingUser)
+                            .ToList();
                      }
                      else
                      {
-                         ViewBag.IsFollowing = user.Followers.Any(f => f.FollowingUserId == currentUser.Id);
+                         var follow = user.Followers.FirstOrDefault(f => f.FollowingUserId == currentUser.Id);
+                         if (follow != null)
+                         {
+                             if (follow.Status)
+                             {
+                                 ViewBag.IsFollowing = true;
+                             }
+                             else
+                             {
+                                 ViewBag.RequestSent = true;
+                             }
+                         }
                      }
                 }
             }
@@ -164,66 +182,7 @@ namespace MicroSocial.Controllers
             return View(await users.ToListAsync());
         }
 
-        // POST: Profiles/Follow/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Follow(string id)
-        {
-            var userToFollow = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-            var currentUser = await _userManager.GetUserAsync(User);
 
-            if (userToFollow == null || currentUser == null)
-            {
-                return NotFound();
-            }
-
-            if (userToFollow.Id == currentUser.Id)
-            {
-                return BadRequest("You cannot follow yourself.");
-            }
-
-            var existingFollow = await _context.Follows
-                .FirstOrDefaultAsync(f => f.FollowingUserId == currentUser.Id && f.FollowedUserId == userToFollow.Id);
-
-            if (existingFollow == null)
-            {
-                var follow = new Follow
-                {
-                    FollowingUserId = currentUser.Id,
-                    FollowedUserId = userToFollow.Id
-                };
-
-                _context.Follows.Add(follow);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(nameof(Show), new { id = id });
-        }
-
-        // POST: Profiles/Unfollow/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Unfollow(string id)
-        {
-            var userToUnfollow = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-            var currentUser = await _userManager.GetUserAsync(User);
-
-            if (userToUnfollow == null || currentUser == null)
-            {
-                return NotFound();
-            }
-
-            var existingFollow = await _context.Follows
-                .FirstOrDefaultAsync(f => f.FollowingUserId == currentUser.Id && f.FollowedUserId == userToUnfollow.Id);
-
-            if (existingFollow != null)
-            {
-                _context.Follows.Remove(existingFollow);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(nameof(Show), new { id = id });
-        }
 
         public async Task<IActionResult> Followers(string id)
         {

@@ -76,11 +76,7 @@ namespace MicroSocial.Controllers
         public async Task<IActionResult> Create([Bind("Content,MediaType")] Post post, IFormFile? mediaFile)
         {
             // Remove properties we set manually or don't need from validation
-            ModelState.Remove("MediaPath");
-            ModelState.Remove("User");
-            ModelState.Remove("UserId");
-            ModelState.Remove("Likes");
-            ModelState.Remove("Comments");
+            ModelState.Remove(nameof(post.UserId));
 
             if (ModelState.IsValid)
             {
@@ -178,11 +174,7 @@ namespace MicroSocial.Controllers
                 return Forbid();
             }
 
-            ModelState.Remove("MediaPath");
-            ModelState.Remove("User");
-            ModelState.Remove("UserId");
-            ModelState.Remove("Likes");
-            ModelState.Remove("Comments");
+            ModelState.Remove(nameof(post.UserId));
 
             if (ModelState.IsValid)
             {

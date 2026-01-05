@@ -6,11 +6,11 @@ namespace MicroSocial.Models
     {
         public string FollowedUserId { get; set; }
         [ForeignKey("FollowedUserId")]
-        public ApplicationUser FollowedUser { get; set; }
+        public ApplicationUser? FollowedUser { get; set; }
 
         public string FollowingUserId { get; set; }
         [ForeignKey("FollowingUserId")]
-        public ApplicationUser FollowingUser { get; set; }
+        public ApplicationUser? FollowingUser { get; set; }
 
         public bool Status { get; set; }
     }

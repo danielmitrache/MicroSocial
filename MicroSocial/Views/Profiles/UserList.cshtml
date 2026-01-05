@@ -20,11 +20,10 @@
                         }
                         else
                         {
-                            <img src="https://via.placeholder.com/50" class="rounded-circle me-3" style="width: 50px; height: 50px;" />
+                            <img src="/uploads/default_profile_picture.jpg" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;" />
                         }
                         <div>
                             <h5 class="mb-0">@user.FirstName @user.LastName</h5>
-                            <small class="text-muted">@user.UserName</small>
                         </div>
                     </div>
                     <a asp-action="Show" asp-route-id="@user.Id" class="btn btn-outline-primary btn-sm">View Profile</a>
