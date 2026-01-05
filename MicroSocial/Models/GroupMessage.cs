@@ -10,11 +10,11 @@ namespace MicroSocial.Models
 
         public int GroupId { get; set; }
         [ForeignKey("GroupId")]
-        public Group Group { get; set; }
+        public Group? Group { get; set; }
 
         public string UserId { get; set; }
         [ForeignKey("UserId")]
-        public ApplicationUser User { get; set; }
+        public ApplicationUser? User { get; set; }
 
         public string Content { get; set; }
         public DateTime SentAt { get; set; }

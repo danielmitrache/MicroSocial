@@ -73,10 +73,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Comment>()
-        .HasOne(c => c.User)
-        .WithMany(u => u.Comments)
-        .HasForeignKey(c => c.UserId)
-        .OnDelete(DeleteBehavior.Restrict); 
+            .HasOne(c => c.User)
+            .WithMany(u => u.Comments)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict); 
 
         modelBuilder.Entity<Comment>()
             .HasOne(c => c.Post)

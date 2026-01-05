@@ -12,9 +12,9 @@ namespace MicroSocial.Models
         public string Description { get; set; }
         public string ModeratorId { get; set; }
         [ForeignKey("ModeratorId")]
-        public ApplicationUser Moderator { get; set; }
+        public ApplicationUser? Moderator { get; set; }
 
-        public ICollection<UserGroup> UserGroups { get; set; }
-        public ICollection<GroupMessage> GroupMessages { get; set; }
+        public ICollection<UserGroup>? UserGroups { get; set; }
+        public ICollection<GroupMessage>? GroupMessages { get; set; }
     }
 }

@@ -1,0 +1,39 @@
+@model IEnumerable<MicroSocial.Models.Group>
+
+@{
+    ViewData["Title"] = "Groups";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Groups</h1>
+        <a asp-action="Create" class="btn btn-primary">Create New Group</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No groups found. Be the first to create one!
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">@item.Name</h5>
+                            <p class="card-text text-truncate">@item.Description</p>
+                            <p class="card-text">
+                                <small class="text-muted">Moderator: @(item.Moderator?.UserName ?? "Unknown")</small>
+                            </p>
+                            <a asp-action="Details" asp-route-id="@item.GroupId" class="btn btn-outline-primary stretched-link">View Group</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
