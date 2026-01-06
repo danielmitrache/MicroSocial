@@ -15,6 +15,41 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<MicroSocial.Services.IContentModerationService, MicroSocial.Services.ContentModerationService>();
+
+// Load .env
+var root = Directory.GetCurrentDirectory();
+var dotenv = Path.Combine(root, "..", ".env");
+if (File.Exists(dotenv))
+{
+    foreach (var line in File.ReadAllLines(dotenv))
+    {
+        var parts = line.Split('=', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 2)
+        {
+            Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
+            builder.Configuration[parts[0].Trim()] = parts[1].Trim();
+        }
+    }
+}
+else
+{
+   // Try current directory
+   dotenv = Path.Combine(root, ".env");
+   if (File.Exists(dotenv))
+    {
+        foreach (var line in File.ReadAllLines(dotenv))
+        {
+            var parts = line.Split('=', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2)
+            {
+                Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
+                builder.Configuration[parts[0].Trim()] = parts[1].Trim();
+            }
+        }
+    }
+}
 
 var app = builder.Build();
 

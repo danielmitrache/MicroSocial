@@ -13,12 +13,14 @@ namespace MicroSocial.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly MicroSocial.Services.IContentModerationService _moderationService;
 
-        public PostsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment webHostEnvironment)
+        public PostsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment webHostEnvironment, MicroSocial.Services.IContentModerationService moderationService)
         {
             _context = context;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
+            _moderationService = moderationService;
         }
 
         // GET: Posts
@@ -112,8 +114,18 @@ namespace MicroSocial.Controllers
             // Remove properties we set manually or don't need from validation
             ModelState.Remove(nameof(post.UserId));
 
+            ModelState.Remove(nameof(post.UserId));
+
             if (ModelState.IsValid)
             {
+                // Content Moderation
+                var moderation = await _moderationService.CheckContentAsync(post.Content);
+                if (moderation.Success && !moderation.IsSafe)
+                {
+                    ModelState.AddModelError("Content", "Conținutul tău conține termeni nepotriviți. Te rugăm să reformulezi.");
+                    return View(post);
+                }
+
                 var user = await _userManager.GetUserAsync(User);
                 post.UserId = user.Id;
                 post.CreatedAt = DateTime.UtcNow;
@@ -187,9 +199,10 @@ namespace MicroSocial.Controllers
         }
 
         // POST: Posts/Edit/5
+        // POST: Posts/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PostId,Content,MediaType")] Post post)
+        public async Task<IActionResult> Edit(int id, [Bind("PostId,Content,MediaType")] Post post, IFormFile? mediaFile, bool removeMedia = false)
         {
             if (id != post.PostId)
             {
@@ -210,11 +223,63 @@ namespace MicroSocial.Controllers
 
             ModelState.Remove(nameof(post.UserId));
 
+            ModelState.Remove(nameof(post.UserId));
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Content Moderation
+                    var moderation = await _moderationService.CheckContentAsync(post.Content);
+                    if (moderation.Success && !moderation.IsSafe)
+                    {
+                        ModelState.AddModelError("Content", "Conținutul tău conține termeni nepotriviți. Te rugăm să reformulezi.");
+                         return View(post);
+                    }
+
                     existingPost.Content = post.Content;
+
+                    // Handle Media Removal
+                    if (removeMedia)
+                    {
+                        // Optionally delete file from disk here if desired
+                        existingPost.MediaPath = "";
+                        existingPost.MediaType = MediaType.None;
+                    }
+
+                    // Handle New Media Upload
+                    if (mediaFile != null && mediaFile.Length > 0)
+                    {
+                       var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(mediaFile.FileName);
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await mediaFile.CopyToAsync(fileStream);
+                        }
+
+                        existingPost.MediaPath = "/uploads/" + uniqueFileName;
+
+                        var ext = Path.GetExtension(mediaFile.FileName).ToLower();
+                        if (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }.Contains(ext))
+                        {
+                            existingPost.MediaType = MediaType.Image;
+                        }
+                        else if (new[] { ".mp4", ".webm", ".ogg" }.Contains(ext))
+                        {
+                            existingPost.MediaType = MediaType.Video;
+                        }
+                        else
+                        {
+                            existingPost.MediaType = MediaType.None;
+                        }
+                    }
                     
                     _context.Update(existingPost);
                     await _context.SaveChangesAsync();

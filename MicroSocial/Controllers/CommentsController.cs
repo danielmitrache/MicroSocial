@@ -12,11 +12,13 @@ namespace MicroSocial.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly MicroSocial.Services.IContentModerationService _moderationService;
 
-        public CommentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public CommentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, MicroSocial.Services.IContentModerationService moderationService)
         {
             _context = context;
             _userManager = userManager;
+            _moderationService = moderationService;
         }
 
         // POST: Comments/AddComment
@@ -27,6 +29,21 @@ namespace MicroSocial.Controllers
             if (string.IsNullOrWhiteSpace(content))
             {
                 return RedirectToAction("Details", "Posts", new { id = postId });
+            }
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return RedirectToAction("Details", "Posts", new { id = postId });
+            }
+
+            // Content Moderation
+            var moderation = await _moderationService.CheckContentAsync(content);
+            if (moderation.Success && !moderation.IsSafe)
+            {
+                TempData["Error"] = "Conținutul tău conține termeni nepotriviți. Te rugăm să reformulezi.";
+                 return RedirectToAction("Details", "Posts", new { id = postId }); // Redirecting to Details since AddComment is likely called from Details View directly (no specific AddComment view typically)
+                 // Alternatively, if there was a separate view, we would return it.
+                 // Given the snippet, it redirects to Details. So using TempData is best.
             }
 
             var user = await _userManager.GetUserAsync(User);
@@ -94,10 +111,21 @@ namespace MicroSocial.Controllers
 
             if (!string.IsNullOrWhiteSpace(comment.Content))
             {
+            if (!string.IsNullOrWhiteSpace(comment.Content))
+            {
+                 // Content Moderation
+                var moderation = await _moderationService.CheckContentAsync(comment.Content);
+                if (moderation.Success && !moderation.IsSafe)
+                {
+                    ModelState.AddModelError("Content", "Conținutul tău conține termeni nepotriviți. Te rugăm să reformulezi.");
+                    return View(comment);
+                }
+
                 existingComment.Content = comment.Content;
                 _context.Update(existingComment);
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Details", "Posts", new { id = existingComment.PostId });
+            }
             }
 
             return View(comment);
