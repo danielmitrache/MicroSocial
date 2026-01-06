@@ -25,6 +25,19 @@ namespace MicroSocial.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index(string searchString)
         {
+            var currentUserId = _userManager.GetUserId(User);
+            List<string> followingIds = new List<string>();
+
+            if (currentUserId != null)
+            {
+                followingIds = await _context.Follows
+                    .Where(f => f.FollowingUserId == currentUserId && f.Status == true)
+                    .Select(f => f.FollowedUserId)
+                    .ToListAsync();
+            }
+
+            ViewBag.FollowingIds = followingIds;
+
             var postsQuery = _context.Posts
                 .Include(p => p.User)
                 .Include(p => p.Likes)
@@ -35,6 +48,27 @@ namespace MicroSocial.Controllers
             if (!string.IsNullOrEmpty(searchString))
             {
                 postsQuery = postsQuery.Where(s => s.Content.Contains(searchString) || s.User.UserName.Contains(searchString));
+            }
+
+            // Client-side filtering for complex logic if EF Core fails to translate, 
+            // OR simple where clause if possible. 
+            // Logic: Include if (IsPublic) OR (IsPrivate AND Followed) OR (IsMe)
+            
+            // Note: p.User.IsPrivate might be null, so check != true.
+            // EF Core should translate followingIds.Contains correctly.
+            
+            if (currentUserId != null)
+            {
+                  postsQuery = postsQuery.Where(p => 
+                    p.UserId == currentUserId || 
+                    (p.User.IsPrivate != true) || 
+                    (p.User.IsPrivate == true && followingIds.Contains(p.UserId))
+                );
+            }
+            else
+            {
+                // Anonymous users only see public posts
+                postsQuery = postsQuery.Where(p => p.User.IsPrivate != true);
             }
 
             return View(await postsQuery.ToListAsync());

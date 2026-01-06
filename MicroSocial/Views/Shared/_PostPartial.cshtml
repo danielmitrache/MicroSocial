@@ -1,0 +1,74 @@
+@model Post
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
+            <h5 class="card-title">
+                @if (Model.User != null)
+                {
+                    <a asp-controller="Profiles" asp-action="Show" asp-route-id="@Model.User.Id" class="text-decoration-none text-dark">
+                        @Model.User.FirstName @Model.User.LastName
+                    </a>
+                }
+                else
+                {
+                    <span class="text-muted">Unknown User</span>
+                }
+            </h5>
+            <div class="d-flex align-items-center">
+                <small class="text-muted me-2">@Model.CreatedAt.ToLocalTime().ToString("g")</small>
+                
+                @if (currentUser != null && (Model.UserId == currentUser.Id || User.IsInRole("Administrator")))
+                {
+                        <div class="dropdown">
+                        <button class="btn btn-sm btn-link text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            ⋮
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" asp-controller="Posts" asp-action="Edit" asp-route-id="@Model.PostId">Edit</a></li>
+                            <li>
+                                <form asp-controller="Posts" asp-action="Delete" asp-route-id="@Model.PostId" method="post" onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                    <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <p class="card-text mt-2">@Model.Content</p>
+
+        @if (Model.MediaType == MediaType.Image && !string.IsNullOrEmpty(Model.MediaPath))
+        {
+            <img src="@Model.MediaPath" class="img-fluid mt-2 rounded" style="max-height: 500px; width: 100%; object-fit: cover;" alt="Post image" />
+        }
+        else if (Model.MediaType == MediaType.Video && !string.IsNullOrEmpty(Model.MediaPath))
+        {
+            <video controls class="img-fluid mt-2 rounded" style="max-height: 500px; width: 100%;">
+                <source src="@Model.MediaPath" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        }
+        
+        <div class="d-flex align-items-center mt-3">
+            <form asp-controller="Likes" asp-action="ToggleLike" method="post" class="me-3">
+                <input type="hidden" name="postId" value="@Model.PostId" />
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                <button type="submit" class="btn btn-sm @(currentUser != null && Model.Likes.Any(l => l.UserId == currentUser.Id) ? "btn-danger" : "btn-outline-danger")">
+                    ❤ @Model.Likes.Count
+                </button>
+            </form>
+            
+            <a asp-controller="Posts" asp-action="Details" asp-route-id="@Model.PostId" class="btn btn-sm btn-outline-secondary">
+                Comments (@Model.Comments.Count)
+            </a>
+        </div>
+    </div>
+</div>

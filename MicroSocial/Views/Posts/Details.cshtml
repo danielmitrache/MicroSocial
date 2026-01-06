@@ -84,9 +84,12 @@
                         </div>
                         @if (currentUser != null && (comment.UserId == currentUser.Id || User.IsInRole("Administrator")))
                         {
-                             <form asp-controller="Comments" asp-action="Delete" asp-route-id="@comment.CommentId" method="post" onsubmit="return confirm('Are you sure?');">
-                                <button type="submit" class="btn btn-sm btn-link text-danger p-0">×</button>
-                            </form>
+                            <div class="d-flex align-items-center">
+                                <a asp-controller="Comments" asp-action="Edit" asp-route-id="@comment.CommentId" class="btn btn-sm btn-link text-secondary p-0 me-2">✎</a>
+                                <form asp-controller="Comments" asp-action="Delete" asp-route-id="@comment.CommentId" method="post" onsubmit="return confirm('Are you sure?');">
+                                    <button type="submit" class="btn btn-sm btn-link text-danger p-0">×</button>
+                                </form>
+                            </div>
                         }
                     </div>
                     <p class="mb-0">@comment.Content</p>
