@@ -4,10 +4,6 @@ using MicroSocial.Models;
 
 namespace MicroSocial.Services
 {
-    /// <summary>
-    /// Content moderation service using Azure AI Content Safety.
-    /// Analyzes text for inappropriate content in multiple languages.
-    /// </summary>
     public class AzureContentModerationService : IContentModerationService
     {
         private readonly ContentSafetyClient? _client;
@@ -70,7 +66,7 @@ namespace MicroSocial.Services
             catch (RequestFailedException ex)
             {
                 _logger.LogError(ex, "Azure Content Safety API error: {Message}", ex.Message);
-                return ModerationResult.Approved(); // Fail open to avoid blocking legitimate content
+                return ModerationResult.Approved();
             }
             catch (Exception ex)
             {
@@ -79,49 +75,20 @@ namespace MicroSocial.Services
             }
         }
 
-        /// <summary>
-        /// Processes Azure AI moderation result and determines if content should be blocked
-        /// </summary>
         private ModerationResult ProcessModerationResult(AnalyzeTextResult result)
         {
-            var violations = new List<string>();
+            bool hasViolation = result.CategoriesAnalysis.Any(category => category.Severity >= 2);
 
-            // Check each category - severity 2+ indicates inappropriate content
-            // Severity levels: 0=Safe, 2=Low, 4=Medium, 6=High
-            foreach (var category in result.CategoriesAnalysis)
+            if (hasViolation)
             {
-                if (category.Severity >= 2)
-                {
-                    violations.Add(MapCategoryToRomanian(category.Category.ToString()));
-                }
-            }
-
-            if (violations.Any())
-            {
-                _logger.LogInformation("Content rejected by Azure AI. Categories: {Categories}", 
-                    string.Join(", ", violations));
+                _logger.LogInformation("Content rejected by Azure AI - inappropriate content detected");
 
                 return ModerationResult.Rejected(
                     "Conținutul tău conține termeni nepotriviți. Te rugăm să reformulezi.",
-                    violations.Distinct().ToList());
+                    new List<string> { "Conținut nepotrivit" });
             }
 
             return ModerationResult.Approved();
-        }
-
-        /// <summary>
-        /// Maps Azure category to Romanian user-friendly message
-        /// </summary>
-        private static string MapCategoryToRomanian(string category)
-        {
-            return category switch
-            {
-                "Hate" => "Limbaj urâtor",
-                "Violence" => "Conținut violent",
-                "SelfHarm" => "Conținut dăunător",
-                "Sexual" => "Conținut inadecvat",
-                _ => "Conținut nepotrivit"
-            };
         }
     }
 }

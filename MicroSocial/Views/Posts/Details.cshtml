@@ -60,8 +60,12 @@
         <div class="mb-4">
             <form asp-controller="Comments" asp-action="AddComment" method="post">
                 <input type="hidden" name="postId" value="@Model.PostId" />
-                <div class="group mb-2">
-                    <textarea name="content" class="form-control" rows="2" placeholder="Write a comment..."></textarea>
+                <div class="form-group mb-2">
+                    <textarea name="content" class="form-control @(ViewBag.ModerationError != null ? "is-invalid" : "")" rows="2" placeholder="Write a comment..."></textarea>
+                    @if (ViewBag.ModerationError != null)
+                    {
+                        <span class="text-danger">@ViewBag.ModerationError</span>
+                    }
                 </div>
                 <button type="submit" class="btn btn-sm btn-primary">Add Comment</button>
             </form>

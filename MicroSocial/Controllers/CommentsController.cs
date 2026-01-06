@@ -3,6 +3,7 @@ using MicroSocial.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace MicroSocial.Controllers
 {
@@ -37,8 +38,15 @@ namespace MicroSocial.Controllers
             var moderationResult = await _moderationService.ModerateContentAsync(content);
             if (!moderationResult.IsApproved)
             {
-                TempData["ModerationError"] = moderationResult.Reason;
-                return RedirectToAction("Details", "Posts", new { id = postId });
+                ViewBag.ModerationError = moderationResult.Reason;
+                var post = await _context.Posts
+                    .Include(p => p.User)
+                    .Include(p => p.Likes)
+                    .Include(p => p.Comments)
+                        .ThenInclude(c => c.User)
+                    .FirstOrDefaultAsync(p => p.PostId == postId);
+                
+                return View("~/Views/Posts/Details.cshtml", post);
             }
 
             var user = await _userManager.GetUserAsync(User);
