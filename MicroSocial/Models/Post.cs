@@ -14,6 +14,8 @@ namespace MicroSocial.Models
         [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }
 
+        [Required(ErrorMessage = "Content is required.")]
+        [StringLength(2000, ErrorMessage = "Content can not be more than 2000 characters long.")]
         public string Content { get; set; }
         public string? MediaPath { get; set; }
         public MediaType MediaType { get; set; }

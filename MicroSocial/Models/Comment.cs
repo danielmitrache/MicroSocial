@@ -16,6 +16,8 @@ namespace MicroSocial.Models
         [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }
 
+        [Required(ErrorMessage = "Comment content is required.")]
+        [StringLength(500, ErrorMessage = "Comment can not be more than 500 characters long.")]
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
     }

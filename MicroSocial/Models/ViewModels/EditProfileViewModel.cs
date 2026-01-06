@@ -4,7 +4,9 @@ namespace MicroSocial.Models.ViewModels
 {
     public class EditProfileViewModel
     {
+        [Required(ErrorMessage = "First name is required.")]
         public string? FirstName { get; set; }
+
         public string? LastName { get; set; }
         
         [Display(Name = "Bio")]

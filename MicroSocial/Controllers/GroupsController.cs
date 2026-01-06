@@ -94,6 +94,8 @@ namespace MicroSocial.Controllers
 
             var userId = _userManager.GetUserId(User);
             ViewBag.CurrentUserId = userId;
+            var isAdmin = User.IsInRole("Administrator");
+            ViewBag.IsAdmin = isAdmin;
             
             var userGroup = group.UserGroups.FirstOrDefault(ug => ug.UserId == userId);
             
@@ -101,6 +103,56 @@ namespace MicroSocial.Controllers
             ViewBag.HasPendingRequest = userGroup != null && !userGroup.Status;
             ViewBag.IsModerator = group.ModeratorId == userId;
 
+            return View(group);
+        }
+
+        // GET: Groups/Edit/5
+        [Authorize]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var group = await _context.Groups.FindAsync(id);
+            if (group == null) return NotFound();
+
+            var userId = _userManager.GetUserId(User);
+            if (group.ModeratorId != userId && !User.IsInRole("Administrator"))
+            {
+                return Forbid();
+            }
+
+            return View(group);
+        }
+
+        // POST: Groups/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> Edit(int id, [Bind("GroupId,Name,Description")] Group group)
+        {
+            if (id != group.GroupId) return NotFound();
+
+            var existingGroup = await _context.Groups.FindAsync(id);
+            if (existingGroup == null) return NotFound();
+
+            var userId = _userManager.GetUserId(User);
+            if (existingGroup.ModeratorId != userId && !User.IsInRole("Administrator"))
+            {
+                return Forbid();
+            }
+
+            ModelState.Remove(nameof(group.ModeratorId));
+            ModelState.Remove(nameof(group.Moderator));
+
+            if (ModelState.IsValid)
+            {
+                existingGroup.Name = group.Name;
+                existingGroup.Description = group.Description;
+                
+                _context.Update(existingGroup);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Details), new { id = group.GroupId });
+            }
             return View(group);
         }
 
@@ -176,7 +228,7 @@ namespace MicroSocial.Controllers
             var currentUserId = _userManager.GetUserId(User);
             var group = await _context.Groups.FindAsync(groupId);
 
-            if (group == null || group.ModeratorId != currentUserId)
+            if (group == null || (group.ModeratorId != currentUserId && !User.IsInRole("Administrator")))
             {
                  return Forbid();
             }
@@ -203,7 +255,7 @@ namespace MicroSocial.Controllers
             var currentUserId = _userManager.GetUserId(User);
             var group = await _context.Groups.FindAsync(groupId);
 
-            if (group == null || group.ModeratorId != currentUserId)
+            if (group == null || (group.ModeratorId != currentUserId && !User.IsInRole("Administrator")))
             {
                 return Forbid();
             }
@@ -231,7 +283,7 @@ namespace MicroSocial.Controllers
 
             if (group == null) return NotFound();
             
-            if (group.ModeratorId != userId && !User.IsInRole("Admin")) // Assuming Admin exists or just moderator
+            if (group.ModeratorId != userId && !User.IsInRole("Administrator")) // Assuming Admin exists or just moderator
             {
                 return Forbid();
             }

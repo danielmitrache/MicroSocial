@@ -7,6 +7,9 @@
     var isMember = (bool)ViewBag.IsMember;
     var hasPendingRequest = (bool)ViewBag.HasPendingRequest;
     var isModerator = (bool)ViewBag.IsModerator;
+    var isAdmin = (bool)ViewBag.IsAdmin;
+    var canViewContent = isMember || isAdmin;
+    var canManage = isModerator || isAdmin;
 }
 
 <div class="container mt-4">
@@ -19,10 +22,11 @@
                     <p class="mb-0 small text-muted">Moderator: @(Model.Moderator != null ? $"{Model.Moderator.FirstName} {Model.Moderator.LastName}" : "Unknown")</p>
                 </div>
                 <div>
-                    @if (isModerator)
+                    @if (canManage)
                     {
-                        <form asp-action="Delete" asp-route-id="@Model.GroupId" method="post" onsubmit="return confirm('Are you sure? This will delete the group and all messages!');">
-                            <button type="submit" class="btn btn-danger">Delete Group</button>
+                        <a asp-action="Edit" asp-route-id="@Model.GroupId" class="btn btn-primary">Edit Group</a>
+                        <form asp-action="Delete" asp-route-id="@Model.GroupId" method="post" onsubmit="return confirm('Are you sure? This will delete the group and all messages!');" style="display:inline;">
+                             <button type="submit" class="btn btn-danger">Delete Group</button>
                         </form>
                     }
                     else if (isMember)
@@ -56,11 +60,11 @@
     }
 
     <!-- Chat and Moderation Area -->
-    @if (isMember)
+    @if (canViewContent)
     {
         <div class="row">
             <!-- Chat Column -->
-            <div class="@(isModerator ? "col-md-8" : "col-md-12")">
+            <div class="@(canManage ? "col-md-8" : "col-md-12")">
                 <div class="card shadow-sm h-100">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">Discussion</h5>
@@ -130,7 +134,7 @@
             </div>
 
             <!-- Moderator Column -->
-            @if (isModerator)
+            @if (canManage)
             {
                 <div class="col-md-4">
                     <!-- Member Requests -->

@@ -16,6 +16,7 @@ namespace MicroSocial.Models
         [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }
 
+        [Required(ErrorMessage = "Message can not be empty")]
         public string Content { get; set; }
         public DateTime SentAt { get; set; }
     }

@@ -11,6 +11,7 @@ namespace MicroSocial.Models
         [Key]
         public string UserId { get; set; }
 
+        [Required]
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? ProfilePicture { get; set; }
