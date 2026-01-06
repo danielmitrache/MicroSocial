@@ -12,11 +12,16 @@ namespace MicroSocial.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly MicroSocial.Services.IContentModerationService _moderationService;
 
-        public GroupsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public GroupsController(
+            ApplicationDbContext context, 
+            UserManager<ApplicationUser> userManager,
+            MicroSocial.Services.IContentModerationService moderationService)
         {
             _context = context;
             _userManager = userManager;
+            _moderationService = moderationService;
         }
 
         // GET: Groups
@@ -50,6 +55,25 @@ namespace MicroSocial.Controllers
             
             if (ModelState.IsValid)
             {
+                // Moderate group name
+                var nameModeration = await _moderationService.ModerateContentAsync(group.Name);
+                if (!nameModeration.IsApproved)
+                {
+                    ModelState.AddModelError("Name", nameModeration.Reason);
+                    return View(group);
+                }
+
+                // Moderate group description if provided
+                if (!string.IsNullOrWhiteSpace(group.Description))
+                {
+                    var descriptionModeration = await _moderationService.ModerateContentAsync(group.Description);
+                    if (!descriptionModeration.IsApproved)
+                    {
+                        ModelState.AddModelError("Description", descriptionModeration.Reason);
+                        return View(group);
+                    }
+                }
+
                 var userId = _userManager.GetUserId(User);
                 group.ModeratorId = userId;
                 

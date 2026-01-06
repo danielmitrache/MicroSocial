@@ -13,12 +13,18 @@ namespace MicroSocial.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly MicroSocial.Services.IContentModerationService _moderationService;
 
-        public PostsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment webHostEnvironment)
+        public PostsController(
+            ApplicationDbContext context, 
+            UserManager<ApplicationUser> userManager, 
+            IWebHostEnvironment webHostEnvironment,
+            MicroSocial.Services.IContentModerationService moderationService)
         {
             _context = context;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
+            _moderationService = moderationService;
         }
 
         // GET: Posts
@@ -80,6 +86,14 @@ namespace MicroSocial.Controllers
 
             if (ModelState.IsValid)
             {
+                // Moderate content before allowing publication
+                var moderationResult = await _moderationService.ModerateContentAsync(post.Content);
+                if (!moderationResult.IsApproved)
+                {
+                    ModelState.AddModelError("Content", moderationResult.Reason);
+                    return View(post);
+                }
+
                 var user = await _userManager.GetUserAsync(User);
                 post.UserId = user.Id;
                 post.CreatedAt = DateTime.UtcNow;
@@ -178,6 +192,14 @@ namespace MicroSocial.Controllers
 
             if (ModelState.IsValid)
             {
+                // Moderate content before allowing publication
+                var moderationResult = await _moderationService.ModerateContentAsync(post.Content);
+                if (!moderationResult.IsApproved)
+                {
+                    ModelState.AddModelError("Content", moderationResult.Reason);
+                    return View(existingPost);
+                }
+
                 try
                 {
                     existingPost.Content = post.Content;

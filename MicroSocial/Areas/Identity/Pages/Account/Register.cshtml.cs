@@ -18,15 +18,18 @@ namespace MicroSocial.Areas.Identity.Pages.Account
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<RegisterModel> _logger;
+        private readonly MicroSocial.Services.IContentModerationService _moderationService;
 
         public RegisterModel(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ILogger<RegisterModel> logger)
+            ILogger<RegisterModel> logger,
+            MicroSocial.Services.IContentModerationService moderationService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _moderationService = moderationService;
         }
 
         [BindProperty]
@@ -66,12 +69,25 @@ namespace MicroSocial.Areas.Identity.Pages.Account
                 var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email };
                 
                 // Logic to set FirstName from Email
+                string username = string.Empty;
                 if (!string.IsNullOrEmpty(Input.Email))
                 {
                     var parts = Input.Email.Split('@');
                     if (parts.Length > 0)
                     {
-                        user.FirstName = parts[0];
+                        username = parts[0];
+                        user.FirstName = username;
+                    }
+                }
+
+                // Moderate username before allowing registration
+                if (!string.IsNullOrWhiteSpace(username))
+                {
+                    var usernameModeration = await _moderationService.ModerateContentAsync(username);
+                    if (!usernameModeration.IsApproved)
+                    {
+                        ModelState.AddModelError("Input.Email", "Numele de utilizator conține termeni nepotriviți. Te rugăm să folosești o altă adresă de email.");
+                        return Page();
                     }
                 }
 

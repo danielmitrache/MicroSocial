@@ -11,11 +11,16 @@ namespace MicroSocial.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly MicroSocial.Services.IContentModerationService _moderationService;
 
-        public CommentsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public CommentsController(
+            ApplicationDbContext context, 
+            UserManager<ApplicationUser> userManager,
+            MicroSocial.Services.IContentModerationService moderationService)
         {
             _context = context;
             _userManager = userManager;
+            _moderationService = moderationService;
         }
 
         // POST: Comments/AddComment
@@ -25,6 +30,14 @@ namespace MicroSocial.Controllers
         {
             if (string.IsNullOrWhiteSpace(content))
             {
+                return RedirectToAction("Details", "Posts", new { id = postId });
+            }
+
+            // Moderate content before allowing publication
+            var moderationResult = await _moderationService.ModerateContentAsync(content);
+            if (!moderationResult.IsApproved)
+            {
+                TempData["ModerationError"] = moderationResult.Reason;
                 return RedirectToAction("Details", "Posts", new { id = postId });
             }
 

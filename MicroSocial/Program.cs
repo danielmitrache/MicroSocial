@@ -16,6 +16,10 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+// Register content moderation service
+builder.Services.AddScoped<MicroSocial.Services.IContentModerationService, MicroSocial.Services.AzureContentModerationService>();
+
+
 var app = builder.Build();
 
 // Seed Data
