@@ -22,8 +22,12 @@ namespace MicroSocial.Controllers
         // GET: Groups
         public async Task<IActionResult> Index()
         {
+            var userId = _userManager.GetUserId(User);
+            ViewBag.CurrentUserId = userId;
+
             var groups = await _context.Groups
                 .Include(g => g.Moderator)
+                .Include(g => g.UserGroups)
                 .ToListAsync();
             return View(groups);
         }

@@ -2,6 +2,17 @@
 
 @{
     ViewData["Title"] = "Groups";
+    var currentUserId = ViewBag.CurrentUserId as string;
+
+    // "Your Groups": Moderator OR Member. 
+    // Assuming 'Status == true' means accepted member. 
+    // Moderator is added as member with Status=true in Create, but check both to be safe.
+    var yourGroups = Model.Where(g => g.ModeratorId == currentUserId || g.UserGroups.Any(ug => ug.UserId == currentUserId && ug.Status == true)).ToList();
+    
+    // "Discover Groups": Everything else (including pending requests, or just non-members)
+    // Pending requests usually mean you are not a "member" yet, so maybe they stay in Discover or a separate list.
+    // For simplicity: Discover = All groups - YourGroups
+    var discoverGroups = Model.Except(yourGroups).ToList();
 }
 
 <div class="container mt-4">
@@ -10,16 +21,52 @@
         <a asp-action="Create" class="btn btn-primary">Create New Group</a>
     </div>
 
-    @if (!Model.Any())
+    @* --- YOUR GROUPS --- *@
+    <h3 class="mb-3">Your Groups</h3>
+    @if (!yourGroups.Any())
+    {
+        <div class="alert alert-secondary mb-5">
+            You are not a member of any group yet.
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+            @foreach (var item in yourGroups)
+            {
+                <div class="col">
+                    <div class="card h-100 border-primary">
+                         <div class="card-header bg-primary text-white">
+                            Member
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@item.Name</h5>
+                            <p class="card-text text-truncate">@item.Description</p>
+                            <p class="card-text">
+                                <small class="text-muted">Moderator: @(item.Moderator != null ? $"{item.Moderator.FirstName} {item.Moderator.LastName}" : "Unknown")</small>
+                            </p>
+                            <a asp-action="Details" asp-route-id="@item.GroupId" class="btn btn-outline-primary stretched-link">View Group</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <hr />
+
+    @* --- DISCOVER GROUPS --- *@
+    <h3 class="mb-3 mt-4">Discover Groups</h3>
+    @if (!discoverGroups.Any())
     {
         <div class="alert alert-info">
-            No groups found. Be the first to create one!
+            No other groups found. Be the first to create one!
         </div>
     }
     else
     {
         <div class="row row-cols-1 row-cols-md-3 g-4">
-            @foreach (var item in Model)
+            @foreach (var item in discoverGroups)
             {
                 <div class="col">
                     <div class="card h-100">
