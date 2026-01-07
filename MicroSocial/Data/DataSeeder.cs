@@ -66,7 +66,6 @@ namespace MicroSocial.Data
 
 
                 // Seed Posts
-                // Seed Posts
                 if (!context.Posts.Any())
                 {
                     var posts = new Post[]
@@ -118,21 +117,20 @@ namespace MicroSocial.Data
                     await context.SaveChangesAsync();
 
                     // Seed Comments
-                    // Fix: Ensure users are valid variables. 'normalUser' was undefined. Using 'mihaiUser'
                     var comments = new Comment[]
                     {
                         new Comment
                         {
                             PostId = posts[0].PostId,
                             UserId = mihaiUser.Id, 
-                            Content = "Thank you! Excited to join.",
+                            Content = "Ma bucur ca sunt aici!",
                             CreatedAt = DateTime.UtcNow.AddDays(-1)
                         },
                         new Comment
                         {
                             PostId = posts[1].PostId,
                             UserId = adminUser.Id,
-                            Content = "Glad you like it!",
+                            Content = "Bun venit!",
                             CreatedAt = DateTime.UtcNow.AddHours(-10)
                         }
                     };

@@ -16,6 +16,7 @@ namespace MicroSocial.Models
         public string? LastName { get; set; }
         public string? ProfilePicture { get; set; }
         public string? Description { get; set; }
+        [Display(Name = "Private Profile")]
         public bool? IsPrivate { get; set; }
 
         // Relationships

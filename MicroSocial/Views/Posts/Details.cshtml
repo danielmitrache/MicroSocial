@@ -83,7 +83,7 @@
                 <div class="card-body py-2">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <strong>@comment.User?.UserName</strong>
+                            <strong>@comment.User?.FirstName @comment.User?.LastName</strong>
                             <small class="text-muted ms-2">@comment.CreatedAt.ToLocalTime().ToString("g")</small>
                         </div>
                         @if (currentUser != null && (comment.UserId == currentUser.Id || User.IsInRole("Administrator")))

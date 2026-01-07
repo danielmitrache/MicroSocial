@@ -21,7 +21,6 @@ namespace MicroSocial.Controllers
 
         // POST: Likes/ToggleLike
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleLike(int postId, string? returnUrl = null)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -44,7 +43,7 @@ namespace MicroSocial.Controllers
 
             await _context.SaveChangesAsync();
 
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            if (!string.IsNullOrEmpty(returnUrl))
             {
                 return Redirect(returnUrl);
             }

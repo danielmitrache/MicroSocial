@@ -26,9 +26,20 @@
                         <p>@Model.Description</p>
                     }
 
+                    @if (ViewBag.IsCurrentUser || User.IsInRole("Administrator"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-block mb-2">Edit Profile</a>
+                    }
+                    
+                    @if (User.IsInRole("Administrator") && !ViewBag.IsCurrentUser)
+                    {
+                        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                            <button type="submit" class="btn btn-danger btn-block mb-2">Delete User</button>
+                        </form>
+                    }
+
                     @if (ViewBag.IsCurrentUser)
                     {
-                        <a asp-action="Edit" class="btn btn-primary btn-block mb-2">Edit Profile</a>
                         <a asp-area="Identity" asp-page="/Account/Manage/Index" class="btn btn-outline-secondary btn-block mb-2">Profile Settings</a>
                         
                         @if (ViewBag.PendingRequests != null)
@@ -88,12 +99,12 @@
                    <h5 class="card-title">Stats</h5>
                    <p><strong>Posts:</strong> @Model.Posts?.Count</p>
                    <p>
-                       <a asp-action="Followers" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
+                       <a asp-controller="Follows" asp-action="Followers" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
                            <strong>Followers:</strong> @(Model.Followers != null ? Model.Followers.Count(f => f.Status) : 0)
                        </a>
                    </p>
                    <p>
-                       <a asp-action="Following" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
+                       <a asp-controller="Follows" asp-action="Following" asp-route-id="@Model.Id" class="text-decoration-none text-dark">
                            <strong>Following:</strong> @(Model.Following != null ? Model.Following.Count : 0)
                        </a>
                    </p>

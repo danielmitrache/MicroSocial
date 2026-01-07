@@ -13,7 +13,7 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>News Feed</h1>
+        <h1>For you</h1>
         @if (User.Identity.IsAuthenticated)
         {
             <a asp-action="Create" class="btn btn-primary">Create New Post</a>
@@ -23,7 +23,7 @@
     @* --- ACCOUNTS YOU FOLLOW --- *@
     @if (User.Identity.IsAuthenticated)
     {
-        <h4 class="mb-3 text-primary">Accounts you follow</h4>
+        <h4 class="mb-3 text-secondary">Accounts you follow</h4>
         @if (postsFromFollowing.Any())
         {
             <div class="mb-5">

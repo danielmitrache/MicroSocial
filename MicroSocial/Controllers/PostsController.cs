@@ -51,13 +51,6 @@ namespace MicroSocial.Controllers
             {
                 postsQuery = postsQuery.Where(s => s.Content.Contains(searchString) || s.User.UserName.Contains(searchString));
             }
-
-            // Client-side filtering for complex logic if EF Core fails to translate, 
-            // OR simple where clause if possible. 
-            // Logic: Include if (IsPublic) OR (IsPrivate AND Followed) OR (IsMe)
-            
-            // Note: p.User.IsPrivate might be null, so check != true.
-            // EF Core should translate followingIds.Contains correctly.
             
             if (currentUserId != null)
             {
@@ -108,12 +101,8 @@ namespace MicroSocial.Controllers
 
         // POST: Posts/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Content,MediaType")] Post post, IFormFile? mediaFile)
+        public async Task<IActionResult> Create(Post post, IFormFile? mediaFile)
         {
-            // Remove properties we set manually or don't need from validation
-            ModelState.Remove(nameof(post.UserId));
-
             ModelState.Remove(nameof(post.UserId));
 
             if (ModelState.IsValid)
@@ -122,7 +111,7 @@ namespace MicroSocial.Controllers
                 var moderation = await _moderationService.CheckContentAsync(post.Content);
                 if (moderation.Success && !moderation.IsSafe)
                 {
-                    ModelState.AddModelError("Content", "Conținutul tău conține termeni nepotriviți. Te rugăm să reformulezi.");
+                    ModelState.AddModelError("Content", "Continutul tau contine termeni nepotriviti. Te rugam sa reformulezi.");
                     return View(post);
                 }
 
@@ -170,7 +159,7 @@ namespace MicroSocial.Controllers
 
                 _context.Add(post);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Posts");
             }
             return View(post);
         }
@@ -199,10 +188,8 @@ namespace MicroSocial.Controllers
         }
 
         // POST: Posts/Edit/5
-        // POST: Posts/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PostId,Content,MediaType")] Post post, IFormFile? mediaFile, bool removeMedia = false)
+        public async Task<IActionResult> Edit(int id, Post post, IFormFile? mediaFile, bool removeMedia = false)
         {
             if (id != post.PostId)
             {
@@ -223,8 +210,6 @@ namespace MicroSocial.Controllers
 
             ModelState.Remove(nameof(post.UserId));
 
-            ModelState.Remove(nameof(post.UserId));
-
             if (ModelState.IsValid)
             {
                 try
@@ -233,7 +218,7 @@ namespace MicroSocial.Controllers
                     var moderation = await _moderationService.CheckContentAsync(post.Content);
                     if (moderation.Success && !moderation.IsSafe)
                     {
-                        ModelState.AddModelError("Content", "Conținutul tău conține termeni nepotriviți. Te rugăm să reformulezi.");
+                         ModelState.AddModelError("Content", "Continutul tau contine termeni nepotriviti. Te rugam sa reformulezi.");
                          return View(post);
                     }
 
@@ -242,7 +227,6 @@ namespace MicroSocial.Controllers
                     // Handle Media Removal
                     if (removeMedia)
                     {
-                        // Optionally delete file from disk here if desired
                         existingPost.MediaPath = "";
                         existingPost.MediaType = MediaType.None;
                     }
@@ -295,14 +279,13 @@ namespace MicroSocial.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Posts");
             }
             return View(post);
         }
 
         // POST: Posts/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var post = await _context.Posts.FindAsync(id);
@@ -319,7 +302,7 @@ namespace MicroSocial.Controllers
 
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Posts");
         }
 
         private bool PostExists(int id)

@@ -21,7 +21,6 @@ namespace MicroSocial.Controllers
 
         // POST: Follows/Follow/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Follow(string id)
         {
             var userToFollow = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -58,7 +57,6 @@ namespace MicroSocial.Controllers
 
         // POST: Follows/Unfollow/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Unfollow(string id)
         {
             var userToUnfollow = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -82,7 +80,6 @@ namespace MicroSocial.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(string followerId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -100,7 +97,6 @@ namespace MicroSocial.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Decline(string followerId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -115,6 +111,27 @@ namespace MicroSocial.Controllers
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("Show", "Profiles", new { id = currentUser.Id });
+        }
+        [HttpGet]
+        public async Task<IActionResult> Followers(string id)
+        {
+            var user = await _context.Users.Include(u => u.Followers).ThenInclude(f => f.FollowingUser).FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null) return NotFound();
+
+            ViewData["Title"] = "Followers";
+            var followers = user.Followers.Select(f => f.FollowingUser).ToList();
+            return View("UserList", followers);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Following(string id)
+        {
+            var user = await _context.Users.Include(u => u.Following).ThenInclude(f => f.FollowedUser).FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null) return NotFound();
+
+            ViewData["Title"] = "Following";
+            var following = user.Following.Select(f => f.FollowedUser).ToList();
+            return View("UserList", following);
         }
     }
 }

@@ -1,6 +1,6 @@
 using MicroSocial.Data;
 using MicroSocial.Models;
-using MicroSocial.Models.ViewModels;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -96,7 +96,7 @@ namespace MicroSocial.Controllers
                 }
             }
 
-            if (user.IsPrivate == true && !ViewBag.IsCurrentUser && !ViewBag.IsFollowing)
+            if (user.IsPrivate == true && !ViewBag.IsCurrentUser && !ViewBag.IsFollowing && !User.IsInRole("Administrator"))
             {
                 user.Posts = new List<Post>(); // Hide posts
                 ViewBag.IsPrivateProfile = true;
@@ -106,65 +106,115 @@ namespace MicroSocial.Controllers
         }
 
         // GET: Profiles/Edit
-        public async Task<IActionResult> Edit()
+        public async Task<IActionResult> Edit(string? id)
         {
-            var user = await _userManager.GetUserAsync(User);
+            ApplicationUser? user = null;
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            if (string.IsNullOrEmpty(id))
+            {
+                user = currentUser;
+            }
+            else
+            {
+                if (currentUser.Id != id && !User.IsInRole("Administrator"))
+                {
+                    return Forbid();
+                }
+                user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            }
+
             if (user == null)
             {
                 return NotFound();
             }
 
-            var model = new EditProfileViewModel
-            {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Description = user.Description,
-                IsPrivate = user.IsPrivate ?? false,
-                ProfilePicture = user.ProfilePicture
-            };
-
-            return View(model);
+            return View(user);
         }
 
         // POST: Profiles/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(EditProfileViewModel model)
+        public async Task<IActionResult> Edit(string id, [Bind("Id,FirstName,LastName,Description,IsPrivate")] ApplicationUser userUpdate, IFormFile? profileImage)
         {
-            if (!ModelState.IsValid)
+            if (id != userUpdate.Id)
             {
-                return View(model);
+                return NotFound();
             }
 
-            var user = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser.Id != id && !User.IsInRole("Administrator"))
+            {
+                return Forbid();
+            }
+
+            var userToUpdate = await _context.Users.FindAsync(id);
+            if (userToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            userToUpdate.FirstName = userUpdate.FirstName;
+            userToUpdate.LastName = userUpdate.LastName;
+            userToUpdate.Description = userUpdate.Description;
+            userToUpdate.IsPrivate = userUpdate.IsPrivate;
+
+            if (profileImage != null)
+            {
+                string wwwRootPath = _hostEnvironment.WebRootPath;
+                string fileName = Path.GetFileNameWithoutExtension(profileImage.FileName);
+                string extension = Path.GetExtension(profileImage.FileName);
+                fileName = fileName + DateTime.Now.ToString("yymmssfff") + extension;
+                string path = Path.Combine(wwwRootPath + "/images/profiles/", fileName);
+
+                // Ensure directory exists
+                var directory = Path.Combine(wwwRootPath, "images", "profiles");
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                using (var fileStream = new FileStream(path, FileMode.Create))
+                {
+                    await profileImage.CopyToAsync(fileStream);
+                }
+
+                userToUpdate.ProfilePicture = "/images/profiles/" + fileName;
+            }
+
+            var result = await _userManager.UpdateAsync(userToUpdate);
+            if (!result.Succeeded)
+            {
+                 foreach (var error in result.Errors)
+                 {
+                     ModelState.AddModelError(string.Empty, error.Description);
+                 }
+                 return View(userUpdate);
+            }
+
+            return RedirectToAction(nameof(Show), new { id = userToUpdate.Id });
+        }
+
+        // POST: Profiles/Delete/5
+        [HttpPost]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
 
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            user.Description = model.Description;
-            user.IsPrivate = model.IsPrivate;
-
-            if (model.ProfileImage != null)
+            // Delete User
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
             {
-                string wwwRootPath = _hostEnvironment.WebRootPath;
-                string fileName = Path.GetFileNameWithoutExtension(model.ProfileImage.FileName);
-                string extension = Path.GetExtension(model.ProfileImage.FileName);
-                fileName = fileName + DateTime.Now.ToString("yymmssfff") + extension;
-                string path = Path.Combine(wwwRootPath + "/images/profiles/", fileName);
-
-                using (var fileStream = new FileStream(path, FileMode.Create))
-                {
-                    await model.ProfileImage.CopyToAsync(fileStream);
-                }
-
-                user.ProfilePicture = "/images/profiles/" + fileName;
+                return RedirectToAction("Index", "Posts"); // Redirect to home/posts
             }
 
-            await _userManager.UpdateAsync(user);
-            return RedirectToAction(nameof(Show), new { id = user.Id });
+            // Handle errors (maybe redirect with error? for now just redirect posts)
+            return RedirectToAction(nameof(Show), new { id = id });
         }
 
         // GET: Profiles/Search
@@ -184,24 +234,6 @@ namespace MicroSocial.Controllers
 
 
 
-        public async Task<IActionResult> Followers(string id)
-        {
-            var user = await _context.Users.Include(u => u.Followers).ThenInclude(f => f.FollowingUser).FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null) return NotFound();
-            
-            ViewData["Title"] = "Followers";
-            var followers = user.Followers.Select(f => f.FollowingUser).ToList();
-            return View("UserList", followers);
-        }
 
-        public async Task<IActionResult> Following(string id)
-        {
-            var user = await _context.Users.Include(u => u.Following).ThenInclude(f => f.FollowedUser).FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null) return NotFound();
-
-            ViewData["Title"] = "Following";
-            var following = user.Following.Select(f => f.FollowedUser).ToList();
-            return View("UserList", following);
-        }
     }
 }
