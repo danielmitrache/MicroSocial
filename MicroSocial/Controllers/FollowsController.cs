@@ -112,7 +112,6 @@ namespace MicroSocial.Controllers
             }
             return RedirectToAction("Show", "Profiles", new { id = currentUser.Id });
         }
-        [HttpGet]
         public async Task<IActionResult> Followers(string id)
         {
             var user = await _context.Users.Include(u => u.Followers).ThenInclude(f => f.FollowingUser).FirstOrDefaultAsync(u => u.Id == id);
@@ -123,7 +122,6 @@ namespace MicroSocial.Controllers
             return View("UserList", followers);
         }
 
-        [HttpGet]
         public async Task<IActionResult> Following(string id)
         {
             var user = await _context.Users.Include(u => u.Following).ThenInclude(f => f.FollowedUser).FirstOrDefaultAsync(u => u.Id == id);

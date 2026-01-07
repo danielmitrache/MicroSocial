@@ -41,9 +41,7 @@ namespace MicroSocial.Controllers
 
         // POST: Groups/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> Create([Bind("Name,Description")] Group group)
+        public async Task<IActionResult> Create(Group group)
         {
             ModelState.Remove(nameof(group.ModeratorId));
             ModelState.Remove(nameof(group.Moderator));
@@ -126,9 +124,7 @@ namespace MicroSocial.Controllers
 
         // POST: Groups/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize]
-        public async Task<IActionResult> Edit(int id, [Bind("GroupId,Name,Description")] Group group)
+        public async Task<IActionResult> Edit(int id, Group group)
         {
             if (id != group.GroupId) return NotFound();
 
@@ -158,7 +154,6 @@ namespace MicroSocial.Controllers
 
         // POST: Groups/Join/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> Join(int id)
         {
@@ -188,7 +183,6 @@ namespace MicroSocial.Controllers
 
         // POST: Groups/Leave/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> Leave(int id)
         {
@@ -198,13 +192,6 @@ namespace MicroSocial.Controllers
 
             if (userGroup != null)
             {
-                // Can't leave if you are the moderator? Or does it delete the group?
-                // Logic: Moderator can leave only if they delete the group (handled in Delete) or verify logic.
-                // For now, if moderator tries to leave, we might block it or warn.
-                // Requirement says: "Moderator can delete groups they created". 
-                // "User can leave group".
-                // If moderator leaves, group is orphan. Let's assume moderator should use Delete.
-                
                 var group = await _context.Groups.FindAsync(id);
                 if (group.ModeratorId == userId)
                 {
@@ -221,7 +208,6 @@ namespace MicroSocial.Controllers
 
         // POST: Groups/AcceptRequest
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> AcceptRequest(int groupId, string userId)
         {
@@ -248,7 +234,6 @@ namespace MicroSocial.Controllers
 
         // POST: Groups/RejectRequest
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> RejectRequest(int groupId, string userId)
         {
@@ -274,7 +259,6 @@ namespace MicroSocial.Controllers
 
         // POST: Groups/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

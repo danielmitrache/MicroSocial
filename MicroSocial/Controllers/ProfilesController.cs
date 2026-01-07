@@ -134,8 +134,7 @@ namespace MicroSocial.Controllers
 
         // POST: Profiles/Edit
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Id,FirstName,LastName,Description,IsPrivate")] ApplicationUser userUpdate, IFormFile? profileImage)
+        public async Task<IActionResult> Edit(string id, ApplicationUser userUpdate, IFormFile? profileImage)
         {
             if (id != userUpdate.Id)
             {
@@ -231,9 +230,6 @@ namespace MicroSocial.Controllers
 
             return View(await users.ToListAsync());
         }
-
-
-
 
     }
 }

@@ -20,13 +20,11 @@ namespace MicroSocial.Controllers
 
         // POST: GroupMessages/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create([Bind("GroupId,Content")] GroupMessage message)
+        public async Task<IActionResult> Create(GroupMessage message)
         {
             var userId = _userManager.GetUserId(User);
             
-            // Verify membership
             var isMember = await _context.UserGroups
                 .AnyAsync(ug => ug.GroupId == message.GroupId && ug.UserId == userId && ug.Status == true);
 
@@ -63,9 +61,8 @@ namespace MicroSocial.Controllers
 
         // POST: GroupMessages/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Edit(int id, [Bind("GroupMessageId,GroupId,Content")] GroupMessage message)
+        public async Task<IActionResult> Edit(int id, GroupMessage message)
         {
             if (id != message.GroupMessageId) return NotFound();
 
@@ -106,7 +103,6 @@ namespace MicroSocial.Controllers
 
         // POST: GroupMessages/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> Delete(int id)
         {

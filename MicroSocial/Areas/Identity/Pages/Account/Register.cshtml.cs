@@ -75,10 +75,6 @@ namespace MicroSocial.Areas.Identity.Pages.Account
                     }
                 }
 
-                // Handle the strange UserId property if necessary. 
-                // IdentityUser sets Id automatically. If UserId is mapped to Id, it's fine.
-                // If it's a separate required field without default, we might have issue.
-                // Assuming it's handled or we can set it to a new Guid just in case it's a required secondary key.
                 user.UserId = Guid.NewGuid().ToString();
 
                 var result = await _userManager.CreateAsync(user, Input.Password);
