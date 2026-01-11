@@ -29,7 +29,6 @@ namespace MicroSocial.Services
         {
             _httpClient = httpClient;
             _apiKey = configuration["GEMINI_KEY"] ?? throw new ArgumentNullException("GEMINI_KEY not found in configuration.");
-            _logger = logger;
         }
 
         public async Task<ModerationResult> CheckContentAsync(string text)
@@ -59,17 +58,13 @@ Text: " + text;
 
                 var url = $"{BaseUrl}/{ModelName}:generateContent?key={_apiKey}";
                 
-                _logger.LogInformation("Sending moderation request to Gemini API...");
-                // Console.WriteLine($"DEBUG: API Key used: {_apiKey.Substring(0, 5)}..."); // Debug safety
                 var response = await _httpClient.PostAsync(url, content);
                 var responseString = await response.Content.ReadAsStringAsync();
                 
-                _logger.LogInformation($"DEBUG: Gemini Response JSON: {responseString}");
                 Console.WriteLine($"DEBUG: Gemini Response: {responseString}"); // Force console output
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError($"Gemini API Error: {response.StatusCode} - {responseString}");
                     return new ModerationResult { Success = false, ErrorMessage = $"API Error: {response.StatusCode}" };
                 }
 
@@ -107,7 +102,6 @@ Text: " + text;
                             }
                             catch (JsonException ex) 
                             { 
-                                _logger.LogError(ex, $"Failed to parse JSON from Gemini: {textResponse}");
                                 return new ModerationResult { Success = false, ErrorMessage = "Failed to parse AI response" };
                             }
                         }
@@ -118,7 +112,6 @@ Text: " + text;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception in ContentModerationService");
                 return new ModerationResult { Success = false, ErrorMessage = ex.Message };
             }
         }

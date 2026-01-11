@@ -30,7 +30,7 @@ namespace MicroSocial.Controllers
             {
                 return NotFound();
             }
-            return RedirectToAction(nameof(Show), new { id = user.Id });
+            return RedirectToAction("Show", "Profiles", new { id = user.Id });
         }
 
         // GET: Profiles/Show/5
@@ -161,6 +161,7 @@ namespace MicroSocial.Controllers
             if (profileImage != null)
             {
                 string wwwRootPath = _hostEnvironment.WebRootPath;
+
                 string fileName = Path.GetFileNameWithoutExtension(profileImage.FileName);
                 string extension = Path.GetExtension(profileImage.FileName);
                 fileName = fileName + DateTime.Now.ToString("yymmssfff") + extension;

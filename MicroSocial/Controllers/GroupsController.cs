@@ -44,7 +44,6 @@ namespace MicroSocial.Controllers
         public async Task<IActionResult> Create(Group group)
         {
             ModelState.Remove(nameof(group.ModeratorId));
-            ModelState.Remove(nameof(group.Moderator));
             
             if (ModelState.IsValid)
             {
@@ -64,7 +63,7 @@ namespace MicroSocial.Controllers
                 _context.Add(userGroup);
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Groups");
             }
             return View(group);
         }
@@ -97,9 +96,17 @@ namespace MicroSocial.Controllers
             
             var userGroup = group.UserGroups.FirstOrDefault(ug => ug.UserId == userId);
             
-            ViewBag.IsMember = userGroup != null && userGroup.Status;
+            bool isMember = userGroup != null && userGroup.Status;
+            bool isModerator = group.ModeratorId == userId;
+
+            if (!isMember && !isModerator && !isAdmin)
+            {
+                return RedirectToAction("Index", "Groups");
+            }
+
+            ViewBag.IsMember = isMember;
             ViewBag.HasPendingRequest = userGroup != null && !userGroup.Status;
-            ViewBag.IsModerator = group.ModeratorId == userId;
+            ViewBag.IsModerator = isModerator;
 
             return View(group);
         }
@@ -178,7 +185,7 @@ namespace MicroSocial.Controllers
                 TempData["Message"] = "Request sent successfully!";
             }
 
-            return RedirectToAction(nameof(Details), new { id });
+            return RedirectToAction("Index", "Groups");
         }
 
         // POST: Groups/Leave/5
@@ -229,7 +236,7 @@ namespace MicroSocial.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToAction(nameof(Details), new { id = groupId });
+            return RedirectToAction("Details", "Groups", new { id = groupId });
         }
 
         // POST: Groups/RejectRequest
@@ -254,7 +261,7 @@ namespace MicroSocial.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToAction(nameof(Details), new { id = groupId });
+            return RedirectToAction("Details", "Groups", new { id = groupId });
         }
 
         // POST: Groups/Delete/5
@@ -274,7 +281,7 @@ namespace MicroSocial.Controllers
 
             _context.Groups.Remove(group);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Groups");
         }
     }
 }

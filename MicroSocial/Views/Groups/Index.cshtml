@@ -3,8 +3,9 @@
 @{
     ViewData["Title"] = "Groups";
     var currentUserId = ViewBag.CurrentUserId as string;
-    var yourGroups = Model.Where(g => g.ModeratorId == currentUserId || g.UserGroups.Any(ug => ug.UserId == currentUserId && ug.Status == true)).ToList();
-    var discoverGroups = Model.Except(yourGroups).ToList();
+    var moderatedGroups = Model.Where(g => g.ModeratorId == currentUserId).ToList();
+    var memberGroups = Model.Where(g => g.UserGroups.Any(ug => ug.UserId == currentUserId && ug.Status == true) && g.ModeratorId != currentUserId).ToList();
+    var discoverGroups = Model.Where(g => g.ModeratorId != currentUserId && !g.UserGroups.Any(ug => ug.UserId == currentUserId && ug.Status == true)).ToList();
 }
 
 <div class="container mt-4">
@@ -13,18 +14,55 @@
         <a asp-action="Create" class="btn btn-primary">Create New Group</a>
     </div>
 
-    @* --- YOUR GROUPS --- *@
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+
+    <!-- Groups you Manage -->
+    <h3 class="mb-3">Groups you Manage</h3>
+    @if (!moderatedGroups.Any())
+    {
+        <div class="alert alert-secondary mb-4">
+            You are not moderating any groups.
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+            @foreach (var item in moderatedGroups)
+            {
+                <div class="col">
+                    <div class="card h-100 border-success">
+                         <div class="card-header bg-success text-white">
+                            Moderator
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@item.Name</h5>
+                            <p class="card-text text-truncate">@item.Description</p>
+                            <p class="card-text">
+                                <small class="text-muted">Moderator: You</small>
+                            </p>
+                            <a asp-action="Details" asp-route-id="@item.GroupId" class="btn btn-outline-success stretched-link">Manage Group</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Groups you Joined -->
     <h3 class="mb-3">Your Groups</h3>
-    @if (!yourGroups.Any())
+    @if (!memberGroups.Any())
     {
         <div class="alert alert-secondary mb-5">
-            You are not a member of any group yet.
+            You haven't joined any groups yet.
         </div>
     }
     else
     {
         <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
-            @foreach (var item in yourGroups)
+            @foreach (var item in memberGroups)
             {
                 <div class="col">
                     <div class="card h-100 border-primary">
@@ -47,7 +85,6 @@
 
     <hr />
 
-    @* --- DISCOVER GROUPS --- *@
     <h3 class="mb-3 mt-4">Discover Groups</h3>
     @if (!discoverGroups.Any())
     {
@@ -64,11 +101,24 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">@item.Name</h5>
-                            <p class="card-text text-truncate">@item.Description</p>
-                            <p class="card-text">
-                                <small class="text-muted">Moderator: @(item.Moderator != null ? $"{item.Moderator.FirstName} {item.Moderator.LastName}" : "Unknown")</small>
-                            </p>
-                            <a asp-action="Details" asp-route-id="@item.GroupId" class="btn btn-outline-primary stretched-link">View Group</a>
+                            <p class="card-text text-break">@item.Description</p>
+                            @if (item.UserGroups.Any(ug => ug.UserId == currentUserId && !ug.Status))
+                            {
+                                <button class="btn btn-secondary w-100" disabled>Request Sent</button>
+                            }
+                            else
+                            {
+                                <form asp-action="Join" asp-route-id="@item.GroupId" method="post">
+                                    <button type="submit" class="btn btn-primary w-100 stretched-link">Join Group</button>
+                                </form>
+                            }
+                            
+                            @if (User.IsInRole("Administrator"))
+                            {
+                                <div class="mt-2">
+                                    <a asp-action="Details" asp-route-id="@item.GroupId" class="btn btn-outline-secondary w-100" style="position: relative; z-index: 2;">Details (Admin)</a>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>

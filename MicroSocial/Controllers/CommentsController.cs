@@ -30,6 +30,12 @@ namespace MicroSocial.Controllers
                 return RedirectToAction("Details", "Posts", new { id = postId });
             }
 
+            if (content.Length > 500)
+            {
+                TempData["Error"] = "Comment cannot exceed 500 characters.";
+                return RedirectToAction("Details", "Posts", new { id = postId });
+            }
+
             // Content Moderation
             var moderation = await _moderationService.CheckContentAsync(content);
             if (moderation.Success && !moderation.IsSafe)

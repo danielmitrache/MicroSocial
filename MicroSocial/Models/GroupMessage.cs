@@ -17,6 +17,7 @@ namespace MicroSocial.Models
         public ApplicationUser? User { get; set; }
 
         [Required(ErrorMessage = "Message can not be empty")]
+        [StringLength(500, ErrorMessage = "Message cannot exceed 500 characters.")]
         public string Content { get; set; }
         public DateTime SentAt { get; set; }
     }

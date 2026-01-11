@@ -12,9 +12,12 @@ namespace MicroSocial.Models
         public string UserId { get; set; }
 
         [Required]
+        [StringLength(50, ErrorMessage = "First name cannot exceed 50 characters.")]
         public string? FirstName { get; set; }
+        [StringLength(50, ErrorMessage = "Last name cannot exceed 50 characters.")]
         public string? LastName { get; set; }
         public string? ProfilePicture { get; set; }
+        [StringLength(250, ErrorMessage = "Description cannot exceed 250 characters.")]
         public string? Description { get; set; }
         [Display(Name = "Private Profile")]
         public bool? IsPrivate { get; set; }

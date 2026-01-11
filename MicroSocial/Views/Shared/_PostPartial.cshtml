@@ -26,7 +26,7 @@
                 
                 @if (currentUser != null && (Model.UserId == currentUser.Id || User.IsInRole("Administrator")))
                 {
-                        <div class="dropdown">
+                    <div class="dropdown">
                         <button class="btn btn-sm btn-link text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             ⋮
                         </button>
@@ -43,7 +43,7 @@
             </div>
         </div>
         
-        <p class="card-text mt-2">@Model.Content</p>
+        <p class="card-text mt-2 text-break">@Model.Content</p>
 
         @if (Model.MediaType == MediaType.Image && !string.IsNullOrEmpty(Model.MediaPath))
         {

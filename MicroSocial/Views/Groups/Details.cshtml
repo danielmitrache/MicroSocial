@@ -16,12 +16,12 @@
     <div class="card">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h1 class="display-6">@Model.Name</h1>
-                    <p class="lead text-muted">@Model.Description</p>
+                <div class="flex-grow-1 me-3" style="min-width: 0;">
+                    <h1 class="display-6 text-break">@Model.Name</h1>
+                    <p class="lead text-muted text-break">@Model.Description</p>
                     <p class="mb-0 small text-muted">Moderator: @(Model.Moderator != null ? $"{Model.Moderator.FirstName} {Model.Moderator.LastName}" : "Unknown")</p>
                 </div>
-                <div>
+                <div class="flex-shrink-0">
                     @if (canManage)
                     {
                         <a asp-action="Edit" asp-route-id="@Model.GroupId" class="btn btn-primary">Edit Group</a>
@@ -91,7 +91,7 @@
                                                         @(message.User != null ? $"{message.User.FirstName} {message.User.LastName}" : "Unknown")
                                                     </small>
                                                     
-                                                    @if (isMine)
+                                                    @if(isMine || User.IsInRole("Administrator"))
                                                     {
                                                         <div class="dropdown">
                                                             <button class="btn btn-sm btn-link @(isMine ? "text-white" : "text-muted") p-0" type="button" data-bs-toggle="dropdown">
@@ -187,7 +187,6 @@
                                 {
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <div class="d-flex align-items-center gap-2">
-                                            <!-- Optionally add Avatar here -->
                                              <span>@(member.User != null ? $"{member.User.FirstName} {member.User.LastName}" : "Unknown")</span>
                                              @if (member.UserId == Model.ModeratorId)
                                              {

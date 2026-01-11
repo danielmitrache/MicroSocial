@@ -54,7 +54,7 @@ namespace MicroSocial.Controllers
             if (message == null) return NotFound();
 
             var userId = _userManager.GetUserId(User);
-            if (message.UserId != userId) return Forbid();
+            if (message.UserId != userId && !User.IsInRole("Administrator")) return Forbid();
 
             return View(message);
         }
@@ -70,32 +70,19 @@ namespace MicroSocial.Controllers
             if (existingMessage == null) return NotFound();
 
             var userId = _userManager.GetUserId(User);
-            if (existingMessage.UserId != userId) return Forbid();
+            if (existingMessage.UserId != userId && !User.IsInRole("Administrator")) return Forbid();
 
             ModelState.Remove(nameof(message.UserId));
             
             if (ModelState.IsValid)
             {
                 // Preserve original fields
-                message.UserId = userId;
+                message.UserId = existingMessage.UserId;
                 message.SentAt = existingMessage.SentAt; 
 
-                try
-                {
-                    _context.Update(message);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.GroupMessages.Any(e => e.GroupMessageId == message.GroupMessageId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                _context.Update(message);
+                await _context.SaveChangesAsync();
+
                 return RedirectToAction("Details", "Groups", new { id = message.GroupId });
             }
             return View(message);
@@ -111,7 +98,7 @@ namespace MicroSocial.Controllers
 
             var userId = _userManager.GetUserId(User);
             
-            if (message.UserId != userId) return Forbid();
+            if (message.UserId != userId && !User.IsInRole("Administrator")) return Forbid();
 
             _context.GroupMessages.Remove(message);
             await _context.SaveChangesAsync();
